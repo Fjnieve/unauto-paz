@@ -1,0 +1,23 @@
+{
+  "name": "Calle de la Paz - UNAUTO",
+  "short_name": "Calle Paz",
+  "description": "Tiempos de llegada de autobuses en Calle de la Paz",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#4facfe",
+  "theme_color": "#4facfe",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

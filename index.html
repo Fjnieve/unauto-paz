@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Calle de la Paz">
+    <base href="./">
+    <title>Calle de la Paz - UNAUTO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .parada-info {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .parada-info h2 {
+            color: #4facfe;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .parada-info p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            background: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #4facfe;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-refresh {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-auto {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .results {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .results h2 {
+            color: #4facfe;
+            font-size: 20px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .bus-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #4facfe;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bus-item.arriving {
+            border-left-color: #4CAF50;
+            background: #e8f5e9;
+        }
+
+        .bus-line {
+            font-weight: 700;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .bus-time {
+            font-size: 16px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .bus-time.arriving {
+            color: #4CAF50;
+            font-weight: 700;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #c62828;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            text-align: center;
+            color: white;
+            font-size: 12px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .auto-refresh-indicator {
+            text-align: center;
+            color: white;
+            font-size: 12px;
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚌 CALLE DE LA PAZ</h1>
+
+        <div class="parada-info">
+            <h2>Parada 76</h2>
+            <p>Tiempos de llegada en tiempo real</p>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-refresh" onclick="cargarParada()">
+                🔄 Actualizar
+            </button>
+            <button class="btn btn-auto" onclick="toggleAutoRefresh()">
+                ⏱️ Auto-actualizar
+            </button>
+        </div>
+
+        <div id="autoRefreshIndicator" class="auto-refresh-indicator hidden">
+            ⏱️ Auto-actualización activada (cada 30 segundos)
+        </div>
+
+        <div id="results" class="hidden"></div>
+    </div>
+
+    <div class="footer">
+        App personal UNAUTO · Datos en tiempo real
+    </div>
+
+    <script>
+        const parada = {
+            id: 76,
+            nombre: 'CALLE DE LA PAZ',
+            url: 'https://unauto.es/tiempos-de-llegada/?paradas=&seleccion_de_parada_nombre_valor=CALLE+DE+LA+PAZ&id_parada=76&nombre_parada=CALLE+DE+LA+PAZ'
+        };
+
+        let autoRefreshInterval = null;
+
+        // Cargar automáticamente al abrir la página
+        window.addEventListener('DOMContentLoaded', () => {
+            cargarParada();
+        });
+
+        function toggleAutoRefresh() {
+            const indicator = document.getElementById('autoRefreshIndicator');
+
+            if (autoRefreshInterval) {
+                // Desactivar auto-refresh
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                indicator.classList.add('hidden');
+            } else {
+                // Activar auto-refresh (cada 30 segundos)
+                autoRefreshInterval = setInterval(cargarParada, 30000);
+                indicator.classList.remove('hidden');
+                cargarParada(); // Cargar inmediatamente
+            }
+        }
+
+        async function cargarParada() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.classList.remove('hidden');
+            resultsDiv.innerHTML = '<div class="loading">Cargando tiempos de llegada...</div>';
+
+            try {
+                console.log('Cargando parada:', parada.nombre, 'ID:', parada.id);
+
+                // Probar con diferentes proxies CORS
+                const proxies = [
+                    'https://corsproxy.io/?',
+                    'https://api.allorigins.win/raw?url=',
+                    'https://cors-anywhere.herokuapp.com/'
+                ];
+
+                let html = null;
+                let lastError = null;
+
+                for (const proxyUrl of proxies) {
+                    try {
+                        console.log('Intentando con proxy:', proxyUrl);
+                        // Añadir timestamp para evitar caché
+                        const urlConTimestamp = parada.url + '&_t=' + Date.now();
+                        const url = encodeURIComponent(urlConTimestamp);
+                        const response = await fetch(proxyUrl + url);
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+
+                        html = await response.text();
+                        console.log('HTML recibido, longitud:', html.length);
+                        break;
+                    } catch (err) {
+                        console.warn('Proxy falló:', proxyUrl, err);
+                        lastError = err;
+                    }
+                }
+
+                if (!html) {
+                    throw lastError || new Error('No se pudo obtener datos');
+                }
+
+                const tiempos = parsearTiempos(html);
+                console.log('Tiempos parseados:', tiempos);
+
+                mostrarTiempos(tiempos);
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <strong>Error al cargar los datos</strong><br>
+                        ${error.message}<br>
+                        <button class="btn btn-refresh" onclick="cargarParada()">Reintentar</button>
+                    </div>
+                    <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px;">
+                        <strong>Acceso directo:</strong><br>
+                        <a href="${parada.url}" target="_blank" style="color: #4facfe; text-decoration: none; font-weight: 600;">
+                            Abrir en UNAUTO.es →
+                        </a>
+                    </div>
+                `;
+            }
+        }
+
+        function parsearTiempos(html) {
+            const tiempos = [];
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const texto = doc.body.innerText;
+
+            console.log('Parseando texto, primeros 2000 caracteres:', texto.substring(0, 2000));
+
+            // Buscar la sección de tiempos
+            const inicioTiempos = texto.indexOf('Próximos autobuses');
+            if (inicioTiempos !== -1) {
+                console.log('Encontrada sección de tiempos en posición:', inicioTiempos);
+                console.log('Texto desde tiempos (1000 chars):', texto.substring(inicioTiempos, inicioTiempos + 1000));
+            }
+
+            // Regex universal para capturar cualquier línea de autobús
+            // Buscar buses que están llegando
+            const regexLlegando = /Línea\s+(L\d+)LLEGANDO A PARADA/gi;
+
+            for (const match of texto.matchAll(regexLlegando)) {
+                console.log('Encontrado bus llegando:', match[1]);
+                tiempos.push({
+                    linea: match[1],
+                    estado: 'LLEGANDO A PARADA',
+                    minutos: 0
+                });
+            }
+
+            // Buscar buses con minutos específicos
+            const regexMinutos = /Línea\s+(L\d+)(\d+)\s+minutos/gi;
+
+            for (const match of texto.matchAll(regexMinutos)) {
+                console.log('Encontrado bus en', match[2], 'min:', match[1]);
+                tiempos.push({
+                    linea: match[1],
+                    estado: match[2] + ' min',
+                    minutos: parseInt(match[2])
+                });
+            }
+
+            console.log('Total buses encontrados:', tiempos.length);
+
+            // Ordenar por tiempo
+            tiempos.sort((a, b) => {
+                if (a.estado === 'LLEGANDO A PARADA') return -1;
+                if (b.estado === 'LLEGANDO A PARADA') return 1;
+                return a.minutos - b.minutos;
+            });
+
+            return tiempos;
+        }
+
+        function mostrarTiempos(tiempos) {
+            const resultsDiv = document.getElementById('results');
+
+            if (tiempos.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="results">
+                        <h2>📍 ${parada.nombre}</h2>
+                        <div class="no-data">No hay autobuses próximos en esta parada</div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `<div class="results"><h2>📍 ${parada.nombre}</h2>`;
+
+            tiempos.forEach(tiempo => {
+                const isArriving = tiempo.estado === 'LLEGANDO A PARADA';
+                html += `
+                    <div class="bus-item ${isArriving ? 'arriving' : ''}">
+                        <span class="bus-line">${tiempo.linea}</span>
+                        <span class="bus-time ${isArriving ? 'arriving' : ''}">${tiempo.estado}</span>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
