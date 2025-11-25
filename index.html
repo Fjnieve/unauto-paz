@@ -350,7 +350,8 @@
             // Buscar buses con minutos específicos (solo líneas de interés: L1, L41, L42)
             // El orden en el regex es importante: del más largo al más corto (42, 41, 1)
             // para evitar que L4 capture solo el 4 de L41 o L42
-            const regexMinutos = /Línea\s+L(42|41|1)(\d{1,2})\s+minutos/gi;
+            // \d+ captura TODOS los dígitos restantes (puede ser 8, 13, 42, 138, etc.)
+            const regexMinutos = /Línea\s+L(42|41|1)(\d+)\s+minutos/gi;
 
             for (const match of texto.matchAll(regexMinutos)) {
                 const linea = 'L' + match[1];
