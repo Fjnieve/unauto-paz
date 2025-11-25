@@ -328,34 +328,44 @@
                 console.log('Texto desde tiempos (1000 chars):', texto.substring(inicioTiempos, inicioTiempos + 1000));
             }
 
-            // Regex universal para capturar cualquier línea de autobús
-            // Buscar buses que están llegando
-            const regexLlegando = /Línea\s+(L\d+)LLEGANDO A PARADA/gi;
+            // Líneas que interesan: L1, L41, L42
+            // Las líneas que pasan por esta parada son: L71, L41, L1, L3, L42
+            // Formato en el HTML: "Línea L[línea][minutos] minutos"
+            // Ejemplo: "Línea L718 minutos" = L71, 8 minutos
+            // Ejemplo: "Línea L418 minutos" = L41, 8 minutos
+            // Ejemplo: "Línea L113 minutos" = L1, 13 minutos
+
+            // Buscar buses que están llegando (solo líneas de interés: L1, L41, L42)
+            const regexLlegando = /Línea\s+L(42|41|1)LLEGANDO A PARADA/gi;
 
             for (const match of texto.matchAll(regexLlegando)) {
-                console.log('Encontrado bus llegando:', match[1]);
+                console.log('Encontrado bus llegando: L' + match[1]);
                 tiempos.push({
-                    linea: match[1],
+                    linea: 'L' + match[1],
                     estado: 'LLEGANDO A PARADA',
                     minutos: 0
                 });
             }
 
-            // Buscar buses con minutos específicos
-            const regexMinutos = /Línea\s+(L\d+)(\d+)\s+minutos/gi;
+            // Buscar buses con minutos específicos (solo líneas de interés: L1, L41, L42)
+            // El orden en el regex es importante: del más largo al más corto (42, 41, 1)
+            // para evitar que L4 capture solo el 4 de L41 o L42
+            const regexMinutos = /Línea\s+L(42|41|1)(\d{1,2})\s+minutos/gi;
 
             for (const match of texto.matchAll(regexMinutos)) {
-                console.log('Encontrado bus en', match[2], 'min:', match[1]);
+                const linea = 'L' + match[1];
+                const mins = parseInt(match[2]);
+                console.log('Encontrado bus en', mins, 'min:', linea);
                 tiempos.push({
-                    linea: match[1],
-                    estado: match[2] + ' min',
-                    minutos: parseInt(match[2])
+                    linea: linea,
+                    estado: mins + ' min',
+                    minutos: mins
                 });
             }
 
             console.log('Total buses encontrados:', tiempos.length);
 
-            // Ordenar por tiempo
+            // Ya vienen ordenados por tiempo en el HTML, pero por si acaso:
             tiempos.sort((a, b) => {
                 if (a.estado === 'LLEGANDO A PARADA') return -1;
                 if (b.estado === 'LLEGANDO A PARADA') return 1;
