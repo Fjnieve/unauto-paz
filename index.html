@@ -335,33 +335,49 @@
             // Ejemplo: "Línea L418 minutos" = L41, 8 minutos
             // Ejemplo: "Línea L113 minutos" = L1, 13 minutos
 
-            // Buscar buses que están llegando (solo líneas de interés: L1, L41, L42)
-            const regexLlegando = /Línea\s+L(42|41|1)LLEGANDO A PARADA/gi;
+            // Buscar buses que están llegando
+            // Incluimos L10 en el regex para evitar confusión con L1, pero luego filtramos
+            const regexLlegando = /Línea\s+L(42|41|10|1)LLEGANDO A PARADA/gi;
 
             for (const match of texto.matchAll(regexLlegando)) {
-                console.log('Encontrado bus llegando: L' + match[1]);
-                tiempos.push({
-                    linea: 'L' + match[1],
-                    estado: 'LLEGANDO A PARADA',
-                    minutos: 0
-                });
+                const linea = 'L' + match[1];
+                // Filtrar: solo mostrar L1, L41, L42
+                if (linea === 'L1' || linea === 'L41' || linea === 'L42') {
+                    console.log('Encontrado bus llegando:', linea);
+                    tiempos.push({
+                        linea: linea,
+                        estado: 'LLEGANDO A PARADA',
+                        minutos: 0
+                    });
+                } else {
+                    console.log('Bus llegando ignorado (no en lista de interés):', linea);
+                }
             }
 
-            // Buscar buses con minutos específicos (solo líneas de interés: L1, L41, L42)
-            // El orden en el regex es importante: del más largo al más corto (42, 41, 1)
-            // para evitar que L4 capture solo el 4 de L41 o L42
-            // \d+ captura TODOS los dígitos restantes (puede ser 8, 13, 42, 138, etc.)
-            const regexMinutos = /Línea\s+L(42|41|1)(\d+)\s+minutos/gi;
+            // Buscar buses con minutos específicos
+            // IMPORTANTE: Orden del regex - del más largo al más corto (42, 41, 10, 1)
+            // - L42 antes de L4
+            // - L41 antes de L4
+            // - L10 antes de L1 (para evitar que L106 se capture como L1+06 en vez de L10+6)
+            // - L1 al final
+            // \d+ captura TODOS los dígitos restantes (8, 13, 42, 138, etc.)
+            const regexMinutos = /Línea\s+L(42|41|10|1)(\d+)\s+minutos/gi;
 
             for (const match of texto.matchAll(regexMinutos)) {
                 const linea = 'L' + match[1];
                 const mins = parseInt(match[2]);
-                console.log('Encontrado bus en', mins, 'min:', linea);
-                tiempos.push({
-                    linea: linea,
-                    estado: mins + ' min',
-                    minutos: mins
-                });
+
+                // Filtrar: solo mostrar L1, L41, L42
+                if (linea === 'L1' || linea === 'L41' || linea === 'L42') {
+                    console.log('Encontrado bus en', mins, 'min:', linea);
+                    tiempos.push({
+                        linea: linea,
+                        estado: mins + ' min',
+                        minutos: mins
+                    });
+                } else {
+                    console.log('Bus ignorado (no en lista de interés):', linea, 'en', mins, 'min');
+                }
             }
 
             console.log('Total buses encontrados:', tiempos.length);
